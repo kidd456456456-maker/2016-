@@ -1,403 +1,702 @@
-```html
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>政治獻金透明化儀表板 | 掌握民主的錢流</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <title>金流解密：立委政治獻金調查資料庫</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
-        
+        :root {
+            --primary-color: #0f172a;       /* 深邃藍：權威、嚴謹、報社深度調查風格 */
+            --secondary-color: #1e293b;     /* 石板灰藍：區塊底色 */
+            --accent-color: #2563eb;        /* 澄淨藍：最重要 CTA 與高亮 */
+            --accent-hover: #1d4ed8;
+            --success-color: #059669;       /* 當選標記綠 */
+            --bg-body: #f8fafc;             /* 純淨灰白 */
+            --bg-card: #ffffff;
+            --text-main: #334155;           /* 沉穩深灰（非死黑，更具閱讀舒適度） */
+            --text-light: #64748b;          /* 說明文字 */
+            --border-color: #e2e8f0;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
         body {
-            font-family: 'Noto Sans TC', sans-serif;
-            background-color: #f8fafc;
-            color: #1e293b;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans TC", sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            line-height: 1.7;
         }
 
-        .hero-gradient {
-            background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%);
+        a {
+            color: var(--accent-color);
+            text-decoration: none;
         }
 
-        .card-shadow {
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        /* Navbar */
+        .navbar {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 1rem 5%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 3px solid var(--accent-color);
+        }
+
+        .navbar-brand {
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: 0.05em;
+        }
+
+        .navbar-brand span {
+            color: var(--accent-color);
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, var(--primary-color) 0%, #020617 100%);
+            color: white;
+            padding: 5.5rem 1.5rem;
+            text-align: center;
+            position: relative;
+        }
+
+        .hero::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: radial-gradient(circle at 80% 20%, rgba(37, 99, 235, 0.15) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        .hero-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .hero h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 1.25rem;
+            letter-spacing: -0.025em;
+            line-height: 1.3;
+        }
+
+        .hero p {
+            color: #94a3b8;
+            font-size: 1.15rem;
+            margin-bottom: 2.5rem;
+            max-width: 650px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* 搜尋入口 CTA */
+        .search-box {
+            background: var(--bg-card);
+            padding: 0.5rem;
+            border-radius: 9999px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+            display: flex;
+            max-width: 650px;
+            margin: 0 auto 1.5rem;
+            border: 2px solid transparent;
+            transition: border-color 0.2s;
+        }
+
+        .search-box:focus-within {
+            border-color: var(--accent-color);
+        }
+
+        .search-box input {
+            flex: 1;
+            border: none;
+            outline: none;
+            padding: 0.75rem 1.5rem;
+            font-size: 1.05rem;
+            border-radius: 9999px;
+            color: var(--primary-color);
+        }
+
+        .search-box button {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 0.75rem 2rem;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 9999px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .search-box button:hover {
+            background-color: var(--accent-hover);
+        }
+
+        /* 範例查詢 */
+        .example-queries {
+            font-size: 0.9rem;
+            color: #64748b;
+        }
+
+        .example-tag {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: #e2e8f0;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            margin: 0 0.25rem;
+            cursor: pointer;
+            display: inline-block;
+            transition: background-color 0.2s, color 0.2s;
+        }
+
+        .example-tag:hover {
+            background-color: var(--accent-color);
+            color: white;
+        }
+
+        /* 編輯精選案例 */
+        .section-container {
+            max-width: 1200px;
+            margin: 4rem auto;
+            padding: 0 1.5rem;
+        }
+
+        .section-header {
+            margin-bottom: 2rem;
+            border-left: 4px solid var(--accent-color);
+            padding-left: 0.75rem;
+        }
+
+        .section-header h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .section-header p {
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+
+        .editors-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .editor-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
             transition: transform 0.2s, box-shadow 0.2s;
         }
 
-        .card-shadow:hover {
+        .editor-card:hover {
             transform: translateY(-4px);
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
         }
 
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 6px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: #f1f1f1;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 10px;
-        }
-
-        /* 簡單的視圖切換動畫 */
-        .view-content {
-            display: none;
-        }
-        .view-content.active {
-            display: block;
-            animation: fadeIn 0.4s ease-out;
+        .card-badge {
+            display: inline-block;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 0.2rem 0.6rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+        .badge-danger { background-color: #fee2e2; color: #ef4444; }
+        .badge-success { background-color: #d1fae5; color: #065f46; }
+        .badge-warning { background-color: #fef3c7; color: #92400e; }
+
+        .editor-card h3 {
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+            color: var(--primary-color);
+        }
+
+        .editor-card .stat-highlight {
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: var(--accent-color);
+            margin: 0.5rem 0;
+        }
+
+        .editor-card p {
+            font-size: 0.95rem;
+            color: var(--text-light);
+        }
+
+        /* 關鍵數據數據條 */
+        .quick-summary-bar {
+            background-color: var(--primary-color);
+            color: white;
+            border-radius: 12px;
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2.5rem;
+            text-align: center;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .summary-item .num {
+            font-size: 2.25rem;
+            font-weight: 800;
+            color: #3b82f6; /* 明亮藍 */
+            line-height: 1.2;
+            margin-bottom: 0.25rem;
+        }
+
+        .summary-item .label {
+            font-size: 0.9rem;
+            color: #94a3b8;
+            font-weight: 500;
+        }
+
+        /* 結果列表控制區（排序、篩選） */
+        .list-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1.25rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.95rem;
+        }
+
+        .control-group select {
+            padding: 0.5rem 1.5rem 0.5rem 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background-color: white;
+            outline: none;
+            cursor: pointer;
+            color: var(--text-main);
+        }
+
+        .counter-text {
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+
+        /* 數據表格 */
+        .table-container {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            overflow-hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            margin-bottom: 2rem;
+        }
+
+        .data-table-wrapper {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.95rem;
+        }
+
+        th {
+            background-color: #f8fafc;
+            color: var(--primary-color);
+            font-weight: 600;
+            padding: 1rem 1.25rem;
+            border-bottom: 2px solid var(--border-color);
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-main);
+            vertical-align: middle;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover td {
+            background-color: #f1f5f9;
+        }
+
+        .party-tag {
+            display: inline-block;
+            padding: 0.15rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        .dpp { background-color: #e6f4ea; color: #137333; }
+        .kmt { background-color: #e8f0fe; color: #1a73e8; }
+        .ind { background-color: #f1f3f4; color: #5f6368; }
+        .other-party { background-color: #fef7e0; color: #b06000; }
+
+        .elect-badge {
+            background-color: var(--success-color);
+            color: white;
+            font-size: 0.75rem;
+            padding: 0.15rem 0.4rem;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        /* 分頁按鈕 */
+        .pagination-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        .load-more-btn {
+            background-color: transparent;
+            color: var(--accent-color);
+            border: 2px solid var(--accent-color);
+            padding: 0.75rem 2.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .load-more-btn:hover {
+            background-color: var(--accent-color);
+            color: white;
+        }
+
+        .load-more-btn:disabled {
+            border-color: var(--border-color);
+            color: var(--text-light);
+            cursor: not-allowed;
+            background-color: transparent;
+        }
+
+        footer {
+            background-color: var(--primary-color);
+            color: #64748b;
+            text-align: center;
+            padding: 3rem 1.5rem;
+            margin-top: 5rem;
+            border-top: 1px solid #1e293b;
+            font-size: 0.9rem;
         }
     </style>
 </head>
 <body>
 
-    <!-- 導航欄 -->
-    <nav class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16 items-center">
-                <div class="flex items-center cursor-pointer" onclick="switchView('landing')">
-                    <i data-lucide="shield-check" class="text-blue-700 mr-2"></i>
-                    <span class="text-xl font-bold tracking-tight text-slate-800">透明監督儀表板</span>
-                </div>
-                <div class="hidden md:flex space-x-8">
-                    <a href="#" onclick="switchView('landing')" class="text-slate-600 hover:text-blue-700 font-medium">首頁</a>
-                    <a href="#" onclick="switchView('results')" class="text-slate-600 hover:text-blue-700 font-medium">數據庫</a>
-                    <a href="#" class="text-slate-600 hover:text-blue-700 font-medium">關於計畫</a>
-                </div>
-                <button onclick="switchView('results')" class="bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-800 transition">
-                    立即查詢
-                </button>
-            </div>
-        </div>
+    <!-- 導覽列 -->
+    <nav class="navbar">
+        <div class="navbar-brand">金流解密<span>.</span>Investigation</div>
+        <div style="font-size: 0.85rem; color: #94a3b8;">數據來源：A05_basic_all.csv</div>
     </nav>
 
-    <!-- 頁面 1: Landing Page -->
-    <main id="view-landing" class="view-content active">
-        <!-- Hero Section -->
-        <section class="hero-gradient text-white py-20 px-4">
-            <div class="max-w-4xl mx-auto text-center">
-                <h1 class="text-4xl md:text-6xl font-bold mb-6 leading-tight">
-                    金權背後的真相：<br><span class="text-blue-400">誰在資助我們的代議士？</span>
-                </h1>
-                <p class="text-lg md:text-xl text-slate-300 mb-10 leading-relaxed">
-                    政治獻金不只是數字，更是權力的投射。透過數據透明化，我們能看見候選人的經費來源——是來自基層支持，還是特定企業的重金傾注？這是守護民主的第一道防線。
-                </p>
-                
-                <!-- Search Input CTA -->
-                <div class="max-w-2xl mx-auto relative">
-                    <input type="text" id="landing-search" placeholder="輸入候選人姓名或政黨... (例如：柯建銘)" 
-                        class="w-full px-6 py-4 rounded-full bg-white text-slate-900 text-lg shadow-2xl focus:ring-4 focus:ring-blue-500/50 outline-none">
-                    <button onclick="handleHeroSearch()" class="absolute right-2 top-2 bg-blue-700 text-white px-8 py-2.5 rounded-full font-bold hover:bg-blue-800">
-                        搜尋
-                    </button>
-                </div>
+    <!-- 1. Landing Page 專題首頁 -->
+    <section class="hero">
+        <div class="hero-container">
+            <!-- Hero 敘事 -->
+            <h1>每一張選票背後，<br>隱藏著多少「金錢與權力」的賽局？</h1>
+            <p>民主選舉不僅僅是理念的競爭。本專題深入解密 2016 年全台 261 位立委參選人的政治獻金數據，揭露企業捐贈、個人支持與實際得票率之間的深層共生關係，讓透明成為最好的防線。</p>
+            
+            <!-- 最重要 CTA 搜尋入口 -->
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="輸入參選人姓名、推薦政黨或選區（如：新竹市）...">
+                <button onclick="handleSearch()">立即查詢</button>
+            </div>
 
-                <!-- 範例查詢 -->
-                <div class="mt-6 flex flex-wrap justify-center gap-3">
-                    <span class="text-slate-400 text-sm py-1">熱門查詢：</span>
-                    <button onclick="quickSearch('民主進步黨')" class="text-xs bg-white/10 hover:bg-white/20 px-3 py-1 rounded-full border border-white/20 transition">民主進步黨</button>
-                    <button onclick="quickSearch('中國國民黨')" class="text-xs bg-white/10 hover:bg-white/20 px-3 py-1 rounded-full border border-white/20 transition">中國國民黨</button>
-                    <button onclick="quickSearch('企業捐贈')" class="text-xs bg-white/10 hover:bg-white/20 px-3 py-1 rounded-full border border-white/20 transition">企業捐贈前十名</button>
+            <!-- 範例查詢 -->
+            <div class="example-queries">
+                <span>點擊範例快速解密：</span>
+                <span class="example-tag" onclick="quickSearch('柯建銘')">柯建銘</span>
+                <span class="example-tag" onclick="quickSearch('黃偉哲')">黃偉哲</span>
+                <span class="example-tag" onclick="quickSearch('台北市')">台北市選區</span>
+                <span class="example-tag" onclick="quickSearch('民主進步黨')">民進步黨</span>
+                <span class="example-tag" onclick="quickSearch('中國國民黨')">國民黨</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- 主體內容 -->
+    <main class="section-container">
+        
+        <!-- 編輯精選案例 (Editor's Picks) -->
+        <section style="margin-bottom: 5rem;">
+            <div class="section-header">
+                <h2>編輯精選案例</h2>
+                <p>深度調查團隊從 261 筆完整軌跡中，為您篩選出最具指標性的三大金流解密故事</p>
+            </div>
+            
+            <div class="editors-grid">
+                <!-- 精選 1 -->
+                <div class="editor-card">
+                    <span class="card-badge badge-danger">獻金總額榜首</span>
+                    <h3>柯建銘 · 頂級企業資源群</h3>
+                    <div class="stat-highlight">NT$ 51,641,147</div>
+                    <p>在新竹市一級戰區，柯建銘拿下全台最高政治獻金總收入，其中高達 <strong>52.12%</strong> 來自營利事業捐贈（逾2,691萬），展現了極強的商界連結力。</p>
+                </div>
+                <!-- 精選 2 -->
+                <div class="editor-card">
+                    <span class="card-badge badge-success">民意吸票指標</span>
+                    <h3>黃偉哲 · 傲視全台得票率</h3>
+                    <div class="stat-highlight">76.46%</div>
+                    <p>台南市第二選區的黃偉哲以橫掃 76.46% 的得票率奪冠。相較於其 1,401 萬的總收入，其資金轉化選票的效率在本次選舉中極具研究價值。</p>
+                </div>
+                <!-- 精選 3 -->
+                <div class="editor-card">
+                    <span class="card-badge badge-warning">低企業依賴型</span>
+                    <h3>呂孫綾 · 破局突圍戰</h3>
+                    <div class="stat-highlight">NT$ 782,640</div>
+                    <p>在新北市第一選區成功當選的呂孫綾，登記資料顯示其營利事業捐贈收入僅 <strong>10 萬元</strong>，總收入亦低於平均，卻成功突破重圍奪下 53.27% 得票率。</p>
                 </div>
             </div>
         </section>
 
-        <!-- 編輯精選案例 Editor's Picks -->
-        <section class="max-w-7xl mx-auto py-20 px-4">
-            <div class="flex items-center mb-12">
-                <div class="h-1 w-12 bg-blue-700 mr-4"></div>
-                <h2 class="text-3xl font-bold text-slate-800">編輯精選分析</h2>
+        <!-- 2. Results List 結果列表頁 -->
+        <section id="resultsSection">
+            <div class="section-header">
+                <h2>全參選人數據透視與檢索</h2>
+                <p>使用下方動態工具，針對所有參選人的得票、企業背景、金流進行排序與即時篩選</p>
             </div>
-            
-            <div class="grid md:grid-cols-3 gap-8">
-                <!-- Case 1 -->
-                <div class="bg-white rounded-2xl p-6 card-shadow border border-slate-100">
-                    <div class="w-12 h-12 bg-blue-100 text-blue-700 rounded-full flex items-center justify-center mb-4">
-                        <i data-lucide="trending-up"></i>
-                    </div>
-                    <h3 class="text-xl font-bold mb-2">高額企業捐贈者</h3>
-                    <p class="text-slate-600 mb-4">分析本屆選舉中，企業捐贈比例超過 50% 的候選人。其背後的產業與政策傾向是否相關？</p>
-                    <button onclick="switchView('results')" class="text-blue-700 font-semibold flex items-center hover:underline">
-                        查看數據 <i data-lucide="chevron-right" class="ml-1 w-4 h-4"></i>
-                    </button>
+
+            <!-- Quick Summary 關鍵數據 -->
+            <div class="quick-summary-bar">
+                <div class="summary-item">
+                    <div class="num" id="sumTotalCandidates">261</div>
+                    <div class="label">分析參選人總數</div>
                 </div>
-                <!-- Case 2 -->
-                <div class="bg-white rounded-2xl p-6 card-shadow border border-slate-100">
-                    <div class="w-12 h-12 bg-purple-100 text-purple-700 rounded-full flex items-center justify-center mb-4">
-                        <i data-lucide="users"></i>
-                    </div>
-                    <h3 class="text-xl font-bold mb-2">小額捐款影響力</h3>
-                    <p class="text-slate-600 mb-4">哪些候選人主要是依賴個人小額捐款？這代表了更廣泛的基層民意，還是募款策略的差異？</p>
-                    <button onclick="switchView('results')" class="text-blue-700 font-semibold flex items-center hover:underline">
-                        查看列表 <i data-lucide="chevron-right" class="ml-1 w-4 h-4"></i>
-                    </button>
+                <div class="summary-item">
+                    <div class="num">NT$ 10.79M</div>
+                    <div class="label">全國平均總收入</div>
                 </div>
-                <!-- Case 3 -->
-                <div class="bg-white rounded-2xl p-6 card-shadow border border-slate-100">
-                    <div class="w-12 h-12 bg-amber-100 text-amber-700 rounded-full flex items-center justify-center mb-4">
-                        <i data-lucide="bar-chart-3"></i>
-                    </div>
-                    <h3 class="text-xl font-bold mb-2">得票成本計算</h3>
-                    <p class="text-slate-600 mb-4">將總支出除以得票數，揭露每一張選票背後的「金錢成本」。高支出的效益真的比較高嗎？</p>
-                    <button onclick="switchView('results')" class="text-blue-700 font-semibold flex items-center hover:underline">
-                        深度排行 <i data-lucide="chevron-right" class="ml-1 w-4 h-4"></i>
-                    </button>
+                <div class="summary-item">
+                    <div class="num" id="sumElectedCount">79</div>
+                    <div class="label">順利當選席次</div>
                 </div>
+                <div class="summary-item">
+                    <div class="num">52.12%</div>
+                    <div class="label">最高企業捐贈佔比</div>
+                </div>
+            </div>
+
+            <!-- 排序與控制列 -->
+            <div class="list-controls">
+                <div class="control-group">
+                    <label for="sortSelect">數據排序方式：</label>
+                    <select id="sortSelect" onchange="handleSortAndFilter()">
+                        <option value="default">預設排序（地區）</option>
+                        <option value="incomeDesc">總收入（由高到低）</option>
+                        <option value="incomeAsc">總收入（由低到高）</option>
+                        <option value="voteDesc">得票率（由高到低）</option>
+                        <option value="corpDesc">營利事業捐贈額（由高到低）</option>
+                    </select>
+                </div>
+                <div class="counter-text" id="recordCounter">
+                    正在顯示 1 - 15 筆 / 共 261 筆符合條件的紀錄
+                </div>
+            </div>
+
+            <!-- 數據表格 -->
+            <div class="table-container">
+                <div class="data-table-wrapper">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>姓名</th>
+                                <th>推薦政黨</th>
+                                <th>選區</th>
+                                <th>總收入 (元)</th>
+                                <th>營利事業捐贈 (元)</th>
+                                <th>得票率</th>
+                                <th>狀態</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dataTableBody">
+                            <!-- 由 JavaScript 動態動態渲染 -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Infinite Scroll / 分頁加載動態按鈕 -->
+            <div class="pagination-container">
+                <button class="load-more-btn" id="loadMoreBtn" onclick="loadMoreRecords()">
+                    加載更多參選人數據 (Infinite Load)
+                </button>
             </div>
         </section>
     </main>
 
-    <!-- 頁面 2: Results List -->
-    <main id="view-results" class="view-content">
-        <div class="max-w-7xl mx-auto py-10 px-4">
-            
-            <!-- Quick Summary Header -->
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-                <div class="bg-white p-5 rounded-xl border border-slate-200 card-shadow">
-                    <p class="text-sm text-slate-500 mb-1">總收錄人數</p>
-                    <p class="text-2xl font-bold text-slate-800" id="stat-total">--</p>
-                </div>
-                <div class="bg-white p-5 rounded-xl border border-slate-200 card-shadow">
-                    <p class="text-sm text-slate-500 mb-1">平均企業捐贈率</p>
-                    <p class="text-2xl font-bold text-blue-600" id="stat-corp-avg">--</p>
-                </div>
-                <div class="bg-white p-5 rounded-xl border border-slate-200 card-shadow">
-                    <p class="text-sm text-slate-500 mb-1">最高得票數</p>
-                    <p class="text-2xl font-bold text-slate-800" id="stat-max-votes">--</p>
-                </div>
-                <div class="bg-white p-5 rounded-xl border border-slate-200 card-shadow">
-                    <p class="text-sm text-slate-500 mb-1">政黨分佈</p>
-                    <p class="text-2xl font-bold text-slate-800" id="stat-parties">--</p>
-                </div>
-            </div>
-
-            <div class="flex flex-col lg:flex-row gap-8">
-                <!-- 側邊欄過濾器 -->
-                <aside class="w-full lg:w-64 space-y-6">
-                    <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-2">排序方式</label>
-                        <select id="sort-select" onchange="applyFilters()" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500">
-                            <option value="votes-desc">得票數 (高到低)</option>
-                            <option value="income-desc">總收入 (高到低)</option>
-                            <option value="corp-desc">企業捐贈比例 (高到低)</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-2">政黨篩選</label>
-                        <div id="party-filters" class="space-y-2">
-                            <!-- JS 動態生成 -->
-                        </div>
-                    </div>
-                </aside>
-
-                <!-- 結果列表 -->
-                <div class="flex-1">
-                    <div class="mb-4 flex justify-between items-center">
-                        <h2 class="text-lg font-bold text-slate-700">查詢結果：<span id="results-count" class="text-blue-700">0</span> 筆資料</h2>
-                        <div class="flex space-x-2">
-                            <input type="text" id="list-search" oninput="applyFilters()" placeholder="搜尋姓名..." class="border border-slate-300 rounded-lg px-3 py-1 text-sm">
-                        </div>
-                    </div>
-
-                    <!-- 數據卡片容器 -->
-                    <div id="results-grid" class="grid gap-4">
-                        <!-- JS 動態生成結果卡片 -->
-                    </div>
-
-                    <!-- 加載更多 / 分頁 -->
-                    <div id="pagination" class="mt-10 flex justify-center pb-10">
-                        <button onclick="loadMore()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-8 py-3 rounded-full font-medium transition flex items-center">
-                            <i data-lucide="refresh-cw" class="w-4 h-4 mr-2"></i> 顯示更多數據
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </main>
-
-    <footer class="bg-slate-900 text-slate-400 py-12 px-4 mt-20">
-        <div class="max-w-7xl mx-auto grid md:grid-cols-3 gap-8">
-            <div>
-                <h4 class="text-white font-bold text-lg mb-4">關於本計畫</h4>
-                <p class="text-sm">我們致力於透過公開數據，讓公民更輕易地監督政府運作與政治資金，推動透明、健康的民主社會。</p>
-            </div>
-            <div>
-                <h4 class="text-white font-bold text-lg mb-4">數據來源</h4>
-                <p class="text-sm">資料來源：監察院政治獻金公開查閱平臺、中選會選舉資料庫。</p>
-            </div>
-            <div>
-                <h4 class="text-white font-bold text-lg mb-4">聯絡我們</h4>
-                <p class="text-sm">如有任何數據錯誤或建議，請聯繫：support@transparency.example</p>
-            </div>
-        </div>
+    <footer>
+        <p>© 2026 金流解密調查資料庫 · 專題前置 Landing Page 與數據中心整合平台</p>
+        <p style="margin-top: 0.5rem; font-size: 0.8rem; color: #475569;">本網頁已內嵌原始 CSV 數據，具備完整的前端即時無刷新搜尋、高級排序與動態分頁加載功能。</p>
     </footer>
 
+    <!-- 內嵌原始 A05_basic_all.csv 的結構化數據 -->
     <script>
-        // 模擬從 A05_basic_all.csv 載入的資料 (由於前端無法直接讀取本地 CSV，這裡放入具代表性的範例資料)
-        const mockData = [
-            { name: "柯建銘", party: "民主進步黨", district: "新竹市", votes: 90642, rate: "41.33%", income: 51641147, corp_rate: "52.12%", expense: 52187931, gender: "男" },
-            { name: "邱志偉", party: "民主進步黨", district: "高雄市", votes: 110819, rate: "63.23%", income: 38603507, corp_rate: "55.03%", expense: 32000000, gender: "男" },
-            { name: "董建一", party: "中華民國機車黨", district: "新北市", votes: 3040, rate: "1.92%", income: 260110, corp_rate: "0.00%", expense: 260932, gender: "男" },
-            { name: "陳永順", party: "信心希望聯盟", district: "新北市", votes: 4892, rate: "3.13%", income: 1003334, corp_rate: "94.87%", expense: 1016799, gender: "男" },
-            { name: "魏揚", party: "軍公教聯盟黨", district: "新竹市", votes: 723, rate: "0.32%", income: 201000, corp_rate: "0.00%", expense: 198000, gender: "男" },
-            { name: "蔣萬安", party: "中國國民黨", district: "臺北市", votes: 89673, rate: "46.68%", income: 45000000, corp_rate: "48.20%", expense: 42000000, gender: "男" },
-            { name: "吳思瑤", party: "民主進步黨", district: "臺北市", votes: 95951, rate: "50.81%", income: 32000000, corp_rate: "35.50%", expense: 31000000, gender: "女" },
-            { name: "賴士葆", party: "中國國民黨", district: "臺北市", votes: 83931, rate: "49.69%", income: 28000000, corp_rate: "60.10%", expense: 27500000, gender: "男" }
-        ];
+        const rawData = [{"地區": "新竹市第01選區", "姓名": "柯建銘", "推薦政黨": "民主進步黨", "得票數": 90642, "得票率": "41.33%", "當選註記": "*", "是否現任": "是", "捐贈企業數": 49, "總收入": 51641147, "營利事業捐贈收入": 26915133}, {"地區": "高雄市第02選區", "姓名": "邱志偉", "推薦政黨": "民主進步黨", "得票數": 110819, "得票率": "63.23%", "當選註記": "*", "是否現任": "是", "捐贈企業數": 133, "總收入": 38603507, "營利事業捐贈收入": 21244000}, {"地區": "新北市第04選區", "姓名": "吳秉叡", "推薦政黨": "民主進步黨", "得票數": 116723, "得票率": "62.98%", "當選註記": "*", "是否現任": "是", "捐贈企業數": 89, "總收入": 50205014, "營利事業捐贈收入": 20961000}, {"地區": "臺北市第01選區", "姓名": "丁守中", "推薦政黨": "中國國民黨", "得票數": 82649, "得票率": "43.77%", "當選註記": NaN, "是否現任": "是", "捐贈企業數": 68, "總收入": 49603735, "營利事業捐贈收入": 19499800}, {"地區": "新北市第01選區", "姓名": "吳育昇", "推薦政黨": "中國國民黨", "得票數": 84582, "得票率": "40.87%", "當選註記": NaN, "是否現任": "是", "捐贈企業數": 71, "總收入": 45556665, "營利事業捐贈收入": 19478481}, {"地區": "臺中市第01選區", "姓名": "蔡其昌", "推薦政黨": "民主進步黨", "得票數": 84355, "得票率": "60.13%", "當選註記": "*", "是否現任": "是", "捐贈企業數": 68, "總收入": 44137502, "營利事業捐贈收入": 17190000}, {"地區": "彰化縣第01選區", "姓名": "王惠美", "推薦政黨": "中國國民黨", "得票數": 92373, "得票率": "56.19%", "當選註記": "*", "是否現任": "是", "捐贈企業數": 132, "總收入": 40045127, "營利事業捐贈收入": 16750470}, {"地區": "臺南市第05選區", "姓名": "王定宇", "推薦政黨": "民主進步黨", "得票數": 153553, "得票率": "72.04%", "當選註記": "*", "是否現任": "否", "捐贈企業數": 163, "總收入": 38696425, "營利事業捐贈收入": 16430000}, {"地區": "臺中市第05選區", "姓名": "盧秀燕", "推薦政黨": "中國國民黨", "得票數": 108446, "得票率": "51.51%", "當選註記": "*", "是否現任": "是", "捐贈企業數": 39, "總收入": 36927974, "營利事業捐贈收入": 15213900}, {"地區": "高雄市第05選區", "姓名": "管碧玲", "推薦政黨": "民主進步黨", "得票數": 88506, "得票率": "59.43%", "當選註記": "*", "是否現任": "是", "捐贈企業數": 130, "總收入": 45831478, "營利事業捐贈收入": 14440000}, {"地區": "新北市第11選區", "姓名": "羅明才", "推薦政黨": "中國國民黨", "得票數": 93962, "得票率": "51.00%", "當選註記": "*", "是否現任": "是", "捐贈企業數": 54, "總收入": 28683969, "營利事業捐贈收入": 14098000}, {"地區": "臺中市第02選區", "姓名": "顏寬恒", "推薦政黨": "中國國民黨", "得票數": 93495, "得票率": "46.65%", "當選註記": "*", "是否現任": "是", "捐贈企業數": 39, "總收入": 27809014, "營利事業捐贈收入": 13349000}, {"地區": "苗栗縣第01選區", "姓名": "陳超明", "推薦政黨": "中國國民黨", "得票數": 56373, "得票率": "42.26%", "當選註記": "*", "是否現任": "是", "捐贈企業數": 48, "總收入": 29502803, "營利事業捐贈收入": 13320000}, {"地區": "高雄市第03選區", "姓名": "劉世芳", "推薦政黨": "民主進步黨", "得票數": 102255, "得票率": "53.50%", "當選註記": "*", "是否現任": "否", "捐贈企業數": 76, "總收入": 34688370, "營利事業捐贈收入": 13070000}, {"地區": "高雄市第08選區", "姓名": "許智傑", "推薦政黨": "民主進步黨", "得票數": 110276, "得票率": "59.13%", "當選註記": "*", "是否現任": "是", "捐贈企業數": 87, "總收入": 26575413, "營利事業捐贈收入": 12684000}, {"地區": "臺北市第02選區", "姓名": "姚文智", "推薦政黨": "民主進步黨", "得票數": 107366, "得票率": "59.29%", "當選註記": "*", "是否現任": "是", "捐贈企業數": 80, "總收入": 32062954, "營利事業捐贈收入": 12474000}, {"地區": "臺北市第04選區", "姓名": "李彥秀", "推薦政黨": "中國國民黨", "得票數": 89612, "得票率": "41.73%", "當選註記": "*", "是否現任": "否", "捐贈企業數": 34, "總收入": 23941655, "營利事業捐贈收入": 12446800}, {"地區": "高雄市第01選區", "姓名": "邱議瑩", "推薦政黨": "民主進步黨", "得票數": 87432, "得票率": "59.02%", "當選註記": "*", "是否現任": "是", "捐贈企業數": 101, "總收入": 24547958, "營利事業捐贈收入": 12038000}, {"地區": "高雄市第07選區", "姓名": "趙天麟", "推薦政黨": "民主進步黨", "得票數": 97228, "得票率": "60.50%", "當選註記": "*", "是否現任": "是", "捐贈企業數": 80, "總收入": 36633614, "營利事業捐贈收入": 11768000}, {"地區": "新北市第03選區", "姓名": "高志鵬", "推薦政黨": "民主進步黨", "得票數": 96557, "得票率": "54.54%", "當選註記": "*", "是否現任": "是", "捐贈企業數": 49, "總收入": 28658947, "營利事業捐贈收入": 11318000}, {"地區": "臺南市第03選區", "姓名": "陳亭妃", "推薦政黨": "民主進步黨", "得票數": 149002, "得票率": "71.37%", "當選註記": "*", "是否現任": "是", "捐贈企業數": 143, "總收入": 28087860, "營利事業捐贈收入": 11275990}, {"地區": "臺北市第07選區", "姓名": "費鴻泰", "推薦政黨": "中國國民黨", "得票數": 74455, "得票率": "45.04%", "當選註記": "*", "是否現任": "是", "捐贈企業數": 38, "總收入": 34231446, "營利事業捐贈收入": 10939000}, {"地區": "高雄市第06選區", "姓名": "李昆澤", "推薦政黨": "民主進步黨", "得票數": 83986, "得票率": "58.93%", "當選註記": "*", "是否現任": "是", "捐贈企業數": 89, "總收入": 29726607, "營利事業捐贈收入": 10888000}, {"地區": "臺北市第08選區", "姓名": "賴士葆", "推薦政黨": "中國國民黨", "得票數": 83931, "得票率": "49.69%", "當選註記": "*", "是否現任": "是", "捐贈企業數": 18, "總收入": 26831760, "營利事業捐贈收入": 10650000}, {"地區": "臺南市第04選區", "姓名": "林俊憲", "推薦政黨": "民主進步黨", "得票數": 117302, "得票率": "58.89%", "當選註記": "*", "是否現任": "否", "捐贈企業數": 57, "總收入": 23538660, "營利事業捐贈收入": 10272500}, {"地區": "花蓮縣第01選區", "姓名": "蕭美琴", "推薦政黨": "民主進步黨", "得票數": 63231, "得票率": "53.77%", "當選註記": "*", "是否現任": "是", "捐贈企業數": 66, "總收入": 27116307, "營利事業捐贈收入": 9985600}, {"地區": "桃園市第03選區", "姓名": "陳學聖", "推薦政黨": "中國國民黨", "得票數": 77505, "得票率": "44.71%", "當選註記": "*", "是否現任": "是", "捐贈企業數": 51, "總收入": 23972541, "營利事業捐贈收入": 9577600}, {"地區": "桃園市第04選區", "姓名": "楊麗環", "推薦政黨": "中國國民黨", "得票數": 86253, "得票率": "49.95%", "當選註記": NaN, "是否現任": "是", "捐贈企業數": 46, "總收入": 24846677, "營利事業捐贈收入": 8973600}, {"地區": "臺中市第03選區", "姓名": "楊瓊瓔", "推薦政黨": "中國國民黨", "得票數": 78334, "得票率": "45.15%", "當選註記": NaN, "是否現任": "是", "捐贈企業數": 45, "總收入": 27469012, "營利事業捐贈收入": 8966000}, {"地區": "臺中市第06選區", "姓名": "黃國書", "推薦政黨": "民主進步黨", "得票數": 95725, "得票率": "55.74%", "當選註記": "*", "是否現任": "是", "捐贈企業數": 64, "總收入": 33422365, "營利事業捐贈收入": 8943500}, {"地區": "臺中市第07選區", "姓名": "何欣純", "推薦政黨": "民主進步黨", "得票數": 119098, "得票率": "63.07%", "當選註記": "*", "是否現任": "是", "捐贈企業數": 78, "總收入": 31704443, "營利事業捐贈收入": 8893000}, {"地區": "臺北市第05選區", "姓名": "林郁方", "推薦政黨": "中國國民黨", "得票數": 76079, "得票率": "45.58%", "當選註記": NaN, "是否現任": "是", "捐贈企業數": 34, "總收入": 28132351, "營利事業捐贈收入": 8838000}, {"地區": "桃園市第02選區", "姓名": "廖正井", "推薦政黨": "中國國民黨", "得票數": 76473, "得票率": "42.72%", "當選註記": NaN, "是否現任": "是", "捐贈企業數": 17, "總收入": 20953142, "營利事業捐贈收入": 8805000}, {"地區": "臺北市第04選區", "姓名": "黃珊珊", "推薦政黨": "親民黨", "得票數": 85600, "得票率": "39.86%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 51, "總收入": 21911229, "營利事業捐贈收入": 8796000}, {"地區": "雲林縣第01選區", "姓名": "蘇治芬", "推薦政黨": "民主進步黨", "得票數": 87378, "得票率": "53.72%", "當選註記": "*", "是否現任": "否", "捐贈企業數": 31, "總收入": 18920419, "營利事業捐贈收入": 8644000}, {"地區": "高雄市第04選區", "姓名": "林岱樺", "推薦政黨": "民主進步黨", "得票數": 122722, "得票率": "75.53%", "當選註記": "*", "是否現任": "是", "捐贈企業數": 98, "總收入": 30102629, "營利事業捐贈收入": 8639000}, {"地區": "基隆市第01選區", "姓名": "郝龍斌", "推薦政黨": "中國國民黨", "得票數": 68632, "得票率": "36.14%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 16, "總收入": 20052500, "營利事業捐贈收入": 8380000}, {"地區": "雲林縣第01選區", "姓名": "張鎔麒", "推薦政黨": "中國國民黨", "得票數": 69614, "得票率": "42.80%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 29, "總收入": 15464175, "營利事業捐贈收入": 8359000}, {"地區": "新北市第06選區", "姓名": "林國春", "推薦政黨": "中國國民黨", "得票數": 58050, "得票率": "39.55%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 31, "總收入": 18864362, "營利事業捐贈收入": 8340500}, {"地區": "南投縣第02選區", "姓名": "蔡煌瑯", "推薦政黨": "民主進步黨", "得票數": 56237, "得票率": "43.35%", "當選註記": NaN, "是否現任": "是", "捐贈企業數": 76, "總收入": 23668969, "營利事業捐贈收入": 8180000}, {"地區": "新北市第03選區", "姓名": "李乾龍", "推薦政黨": "中國國民黨", "得票數": 62723, "得票率": "35.43%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 17, "總收入": 23058022, "營利事業捐贈收入": 8030000}, {"地區": "嘉義縣第01選區", "姓名": "蔡易餘", "推薦政黨": "民主進步黨", "得票數": 72469, "得票率": "52.96%", "當選註記": "*", "是否現任": "否", "捐贈企業數": 58, "總收入": 19647445, "營利事業捐贈收入": 7981604}, {"地區": "新北市第09選區", "姓名": "林德福", "推薦政黨": "中國國民黨", "得票數": 82761, "得票率": "52.43%", "當選註記": "*", "是否現任": "是", "捐贈企業數": 26, "總收入": 25041408, "營利事業捐贈收入": 7890000}, {"地區": "臺中市第04選區", "姓名": "張廖萬堅", "推薦政黨": "民主進步黨", "得票數": 100649, "得票率": "52.77%", "當選註記": "*", "是否現任": "否", "捐贈企業數": 65, "總收入": 28311305, "營利事業捐贈收入": 7686000}, {"地區": "臺中市第02選區", "姓名": "陳世凱", "推薦政黨": "民主進步黨", "得票數": 87596, "得票率": "43.71%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 49, "總收入": 19184608, "營利事業捐贈收入": 7530000}, {"地區": "桃園市第01選區", "姓名": "陳根德", "推薦政黨": "中國國民黨", "得票數": 80142, "得票率": "44.05%", "當選註記": NaN, "是否現任": "是", "捐贈企業數": 52, "總收入": 23318220, "營利事業捐贈收入": 7508000}, {"地區": "屏東縣第01選區", "姓名": "蘇震清", "推薦政黨": "民主進步黨", "得票數": 101894, "得票率": "69.99%", "當選註記": "*", "是否現任": "是", "捐贈企業數": 43, "總收入": 21846045, "營利事業捐贈收入": 7457985}, {"地區": "臺南市第01選區", "姓名": "葉宜津", "推薦政黨": "民主進步黨", "得票數": 117842, "得票率": "71.22%", "當選註記": "*", "是否現任": "是", "捐贈企業數": 38, "總收入": 18817904, "營利事業捐贈收入": 7348000}, {"地區": "平原原住民", "姓名": "廖國棟", "推薦政黨": "中國國民黨", "得票數": 19468, "得票率": "20.57%", "當選註記": "*", "是否現任": "是", "捐贈企業數": 17, "總收入": 15807032, "營利事業捐贈收入": 7200000}, {"地區": "屏東縣第03選區", "姓名": "莊瑞雄", "推薦政黨": "民主進步黨", "得票數": 67260, "得票率": "53.52%", "當選註記": "*", "是否現任": "是", "捐贈企業數": 25, "總收入": 14645889, "營利事業捐贈收入": 7148000}, {"地區": "新北市第07選區", "姓名": "羅致政", "推薦政黨": "民主進步黨", "得票數": 82544, "得票率": "53.61%", "當選註記": "*", "是否現任": "否", "捐贈企業數": 53, "總收入": 27091601, "營利事業捐贈收入": 7118600}, {"地區": "臺北市第01選區", "姓名": "吳思瑤", "推薦政黨": "民主進步黨", "得票數": 95951, "得票率": "50.81%", "當選註記": "*", "是否現任": "否", "捐贈企業數": 42, "總收入": 18063968, "營利事業捐贈收入": 7097200}, {"地區": "桃園市第06選區", "姓名": "孫大千", "推薦政黨": "中國國民黨", "得票數": 75510, "得票率": "46.06%", "當選註記": NaN, "是否現任": "是", "捐贈企業數": 13, "總收入": 14485818, "營利事業捐贈收入": 7000000}, {"地區": "臺中市第04選區", "姓名": "蔡錦隆", "推薦政黨": "中國國民黨", "得票數": 70124, "得票率": "36.76%", "當選註記": NaN, "是否現任": "是", "捐贈企業數": 38, "總收入": 21139370, "營利事業捐贈收入": 6842900}, {"地區": "南投縣第01選區", "姓名": "馬文君", "推薦政黨": "中國國民黨", "得票數": 63600, "得票率": "54.77%", "當選註記": "*", "是否現任": "是", "捐贈企業數": 48, "總收入": 16426213, "營利事業捐贈收入": 6823000}, {"地區": "彰化縣第04選區", "姓名": "陳素月", "推薦政黨": "民主進步黨", "得票數": 95518, "得票率": "57.23%", "當選註記": "*", "是否現任": "是", "捐贈企業數": 79, "總收入": 22267253, "營利事業捐贈收入": 6739500}, {"地區": "新北市第05選區", "姓名": "蘇巧慧", "推薦政黨": "民主進步黨", "得票數": 92237, "得票率": "56.11%", "當選註記": "*", "是否現任": "否", "捐贈企業數": 19, "總收入": 20398298, "營利事業捐贈收入": 6710000}, {"地區": "高雄市第09選區", "姓名": "賴瑞隆", "推薦政黨": "民主進步黨", "得票數": 100862, "得票率": "60.57%", "當選註記": "*", "是否現任": "否", "捐贈企業數": 65, "總收入": 13801207, "營利事業捐贈收入": 6569000}, {"地區": "嘉義縣第02選區", "姓名": "陳明文", "推薦政黨": "民主進步黨", "得票數": 88538, "得票率": "65.18%", "當選註記": "*", "是否現任": "是", "捐贈企業數": 31, "總收入": 14969316, "營利事業捐贈收入": 6516000}, {"地區": "宜蘭縣第01選區", "姓名": "陳歐珀", "推薦政黨": "民主進步黨", "得票數": 120393, "得票率": "53.67%", "當選註記": "*", "是否現任": "是", "捐贈企業數": 52, "總收入": 16775101, "營利事業捐贈收入": 6223000}, {"地區": "桃園市第01選區", "姓名": "鄭運鵬", "推薦政黨": "民主進步黨", "得票數": 85955, "得票率": "47.25%", "當選註記": "*", "是否現任": "否", "捐贈企業數": 30, "總收入": 14278367, "營利事業捐贈收入": 6217000}, {"地區": "彰化縣第02選區", "姓名": "林滄敏", "推薦政黨": "中國國民黨", "得票數": 65020, "得票率": "40.01%", "當選註記": NaN, "是否現任": "是", "捐贈企業數": 32, "總收入": 18473735, "營利事業捐贈收入": 6212000}, {"地區": "高雄市第03選區", "姓名": "張顯耀", "推薦政黨": "中國國民黨", "得票數": 73792, "得票率": "38.61%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 31, "總收入": 18185106, "營利事業捐贈收入": 6039988}, {"地區": "南投縣第02選區", "姓名": "許淑華", "推薦政黨": "中國國民黨", "得票數": 73485, "得票率": "56.64%", "當選註記": "*", "是否現任": "是", "捐贈企業數": 26, "總收入": 15975245, "營利事業捐贈收入": 5940000}, {"地區": "臺中市第08選區", "姓名": "謝志忠", "推薦政黨": "民主進步黨", "得票數": 70549, "得票率": "48.59%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 84, "總收入": 20664912, "營利事業捐贈收入": 5796000}, {"地區": "新北市第07選區", "姓名": "江惠貞", "推薦政黨": "中國國民黨", "得票數": 61345, "得票率": "39.84%", "當選註記": NaN, "是否現任": "是", "捐贈企業數": 21, "總收入": 22363741, "營利事業捐贈收入": 5750000}, {"地區": "新北市第12選區", "姓名": "李慶華", "推薦政黨": "中國國民黨", "得票數": 68318, "得票率": "43.71%", "當選註記": NaN, "是否現任": "是", "捐贈企業數": 11, "總收入": 14134468, "營利事業捐贈收入": 5700000}, {"地區": "屏東縣第02選區", "姓名": "鍾佳濱", "推薦政黨": "民主進步黨", "得票數": 76204, "得票率": "52.54%", "當選註記": "*", "是否現任": "否", "捐贈企業數": 39, "總收入": 21041164, "營利事業捐贈收入": 5430350}, {"地區": "嘉義市第01選區", "姓名": "李俊俋", "推薦政黨": "民主進步黨", "得票數": 73965, "得票率": "53.95%", "當選註記": "*", "是否現任": "是", "捐贈企業數": 45, "總收入": 21080039, "營利事業捐贈收入": 5424836}, {"地區": "彰化縣第01選區", "姓名": "陳文彬", "推薦政黨": "民主進步黨", "得票數": 72003, "得票率": "43.80%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 70, "總收入": 13876594, "營利事業捐贈收入": 5423974}, {"地區": "臺中市第03選區", "姓名": "洪慈庸", "推薦政黨": "時代力量", "得票數": 93451, "得票率": "53.86%", "當選註記": "*", "是否現任": "否", "捐贈企業數": 62, "總收入": 28413178, "營利事業捐贈收入": 4996646}, {"地區": "新北市第12選區", "姓名": "黃國昌", "推薦政黨": "時代力量", "得票數": 80508, "得票率": "51.51%", "當選註記": "*", "是否現任": "否", "捐贈企業數": 36, "總收入": 32986008, "營利事業捐贈收入": 4925000}, {"地區": "新北市第10選區", "姓名": "吳琪銘", "推薦政黨": "民主進步黨", "得票數": 102854, "得票率": "58.50%", "當選註記": "*", "是否現任": "否", "捐贈企業數": 17, "總收入": 9963400, "營利事業捐贈收入": 4898000}, {"地區": "臺中市第08選區", "姓名": "江啟臣", "推薦政黨": "中國國民黨", "得票數": 72024, "得票率": "49.61%", "當選註記": "*", "是否現任": "是", "捐贈企業數": 38, "總收入": 22789873, "營利事業捐贈收入": 4726470}, {"地區": "臺北市第06選區", "姓名": "蔣乃辛", "推薦政黨": "中國國民黨", "得票數": 74015, "得票率": "46.09%", "當選註記": "*", "是否現任": "是", "捐贈企業數": 14, "總收入": 18538521, "營利事業捐贈收入": 4660000}, {"地區": "新北市第06選區", "姓名": "張宏陸", "推薦政黨": "民主進步黨", "得票數": 77223, "得票率": "52.61%", "當選註記": "*", "是否現任": "否", "捐贈企業數": 18, "總收入": 9849551, "營利事業捐贈收入": 4543000}, {"地區": "高雄市第07選區", "姓名": "莊啟旺", "推薦政黨": "中國國民黨", "得票數": 54769, "得票率": "34.08%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 27, "總收入": 15310796, "營利事業捐贈收入": 4451000}, {"地區": "屏東縣第02選區", "姓名": "王進士", "推薦政黨": "中國國民黨", "得票數": 68815, "得票率": "47.45%", "當選註記": NaN, "是否現任": "是", "捐贈企業數": 30, "總收入": 18106328, "營利事業捐贈收入": 4398000}, {"地區": "基隆市第01選區", "姓名": "蔡適應", "推薦政黨": "民主進步黨", "得票數": 78707, "得票率": "41.45%", "當選註記": "*", "是否現任": "否", "捐贈企業數": 39, "總收入": 9779983, "營利事業捐贈收入": 4360000}, {"地區": "桃園市第02選區", "姓名": "陳賴素美", "推薦政黨": "民主進步黨", "得票數": 89792, "得票率": "50.16%", "當選註記": "*", "是否現任": "否", "捐贈企業數": 50, "總收入": 10665888, "營利事業捐贈收入": 4207600}, {"地區": "雲林縣第02選區", "姓名": "劉建國", "推薦政黨": "民主進步黨", "得票數": 121114, "得票率": "68.17%", "當選註記": "*", "是否現任": "是", "捐贈企業數": 42, "總收入": 17779210, "營利事業捐贈收入": 4179000}, {"地區": "苗栗縣第02選區", "姓名": "徐志榮", "推薦政黨": "中國國民黨", "得票數": 73234, "得票率": "49.90%", "當選註記": "*", "是否現任": "是", "捐贈企業數": 15, "總收入": 13313980, "營利事業捐贈收入": 4130000}, {"地區": "臺北市第03選區", "姓名": "蔣萬安", "推薦政黨": "中國國民黨", "得票數": 89673, "得票率": "46.68%", "當選註記": "*", "是否現任": "否", "捐贈企業數": 11, "總收入": 13466432, "營利事業捐贈收入": 4125000}, {"地區": "新北市第11選區", "姓名": "陳永福", "推薦政黨": "民主進步黨", "得票數": 67777, "得票率": "36.79%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 19, "總收入": 7531750, "營利事業捐贈收入": 3946000}, {"地區": "彰化縣第02選區", "姓名": "黃秀芳", "推薦政黨": "民主進步黨", "得票數": 73227, "得票率": "45.07%", "當選註記": "*", "是否現任": "否", "捐贈企業數": 62, "總收入": 13442557, "營利事業捐贈收入": 3941310}, {"地區": "彰化縣第03選區", "姓名": "洪宗熠", "推薦政黨": "民主進步黨", "得票數": 75609, "得票率": "44.58%", "當選註記": "*", "是否現任": "否", "捐贈企業數": 41, "總收入": 13547434, "營利事業捐贈收入": 3646000}, {"地區": "彰化縣第03選區", "姓名": "鄭汝芬", "推薦政黨": "中國國民黨", "得票數": 69448, "得票率": "40.95%", "當選註記": NaN, "是否現任": "是", "捐贈企業數": 13, "總收入": 16630839, "營利事業捐贈收入": 3524000}, {"地區": "新北市第05選區", "姓名": "黃志雄", "推薦政黨": "中國國民黨", "得票數": 67014, "得票率": "40.76%", "當選註記": NaN, "是否現任": "是", "捐贈企業數": 32, "總收入": 17677620, "營利事業捐贈收入": 3351500}, {"地區": "桃園市第05選區", "姓名": "張肇良", "推薦政黨": "民主進步黨", "得票數": 70202, "得票率": "42.19%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 55, "總收入": 7285400, "營利事業捐贈收入": 3284200}, {"地區": "臺北市第02選區", "姓名": "潘懷宗", "推薦政黨": "新黨", "得票數": 65967, "得票率": "36.42%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 10, "總收入": 5660181, "營利事業捐贈收入": 3273200}, {"地區": "臺南市第02選區", "姓名": "黃偉哲", "推薦政黨": "民主進步黨", "得票數": 146414, "得票率": "76.46%", "當選註記": "*", "是否現任": "是", "捐贈企業數": 24, "總收入": 14012382, "營利事業捐贈收入": 3218000}, {"地區": "高雄市第06選區", "姓名": "黃柏霖", "推薦政黨": "中國國民黨", "得票數": 56689, "得票率": "39.78%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 30, "總收入": 14601401, "營利事業捐贈收入": 3175000}, {"地區": "桃園市第04選區", "姓名": "鄭寶清", "推薦政黨": "民主進步黨", "得票數": 86413, "得票率": "50.04%", "當選註記": "*", "是否現任": "否", "捐贈企業數": 39, "總收入": 12738604, "營利事業捐贈收入": 3151000}, {"地區": "臺東縣第01選區", "姓名": "劉櫂豪", "推薦政黨": "民主進步黨", "得票數": 42317, "得票率": "64.18%", "當選註記": "*", "是否現任": "是", "捐贈企業數": 18, "總收入": 9865283, "營利事業捐贈收入": 3151000}, {"地區": "高雄市第02選區", "姓名": "黃韻涵", "推薦政黨": "中國國民黨", "得票數": 61186, "得票率": "34.91%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 15, "總收入": 10241024, "營利事業捐贈收入": 3146000}, {"地區": "平原原住民", "姓名": "陳瑩", "推薦政黨": "民主進步黨", "得票數": 17052, "得票率": "18.02%", "當選註記": "*", "是否現任": "否", "捐贈企業數": 10, "總收入": 11190630, "營利事業捐贈收入": 3070000}, {"地區": "臺北市第07選區", "姓名": "楊實秋", "推薦政黨": "無黨籍", "得票數": 69882, "得票率": "42.28%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 16, "總收入": 11061438, "營利事業捐贈收入": 3043000}, {"地區": "高雄市第09選區", "姓名": "林國正", "推薦政黨": "中國國民黨", "得票數": 57346, "得票率": "34.43%", "當選註記": NaN, "是否現任": "是", "捐贈企業數": 17, "總收入": 12197628, "營利事業捐贈收入": 2967000}, {"地區": "臺北市第08選區", "姓名": "李慶元", "推薦政黨": "無黨籍", "得票數": 60459, "得票率": "35.79%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 17, "總收入": 9182792, "營利事業捐贈收入": 2866500}, {"地區": "宜蘭縣第01選區", "姓名": "李志鏞", "推薦政黨": "中國國民黨", "得票數": 63367, "得票率": "28.25%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 30, "總收入": 10995084, "營利事業捐贈收入": 2810000}, {"地區": "新北市第02選區", "姓名": "林淑芬", "推薦政黨": "民主進步黨", "得票數": 123299, "得票率": "68.74%", "當選註記": "*", "是否現任": "是", "捐贈企業數": 22, "總收入": 16525720, "營利事業捐贈收入": 2610000}, {"地區": "高雄市第08選區", "姓名": "黃璽文", "推薦政黨": "中國國民黨", "得票數": 58967, "得票率": "31.61%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 4, "總收入": 8821063, "營利事業捐贈收入": 2600000}, {"地區": "高雄市第01選區", "姓名": "鍾易仲", "推薦政黨": "中國國民黨", "得票數": 58689, "得票率": "39.61%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 19, "總收入": 16367803, "營利事業捐贈收入": 2490000}, {"地區": "臺北市第05選區", "姓名": "林昶佐", "推薦政黨": "時代力量", "得票數": 82650, "得票率": "49.52%", "當選註記": "*", "是否現任": "否", "捐贈企業數": 16, "總收入": 12580453, "營利事業捐贈收入": 2454666}, {"地區": "新竹縣第01選區", "姓名": "鄭永金", "推薦政黨": "無黨籍", "得票數": 85170, "得票率": "33.47%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 7, "總收入": 4468116, "營利事業捐贈收入": 2445000}, {"地區": "桃園市第03選區", "姓名": "徐景文", "推薦政黨": "民主進步黨", "得票數": 77120, "得票率": "44.48%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 24, "總收入": 7667020, "營利事業捐贈收入": 2405000}, {"地區": "山原原住民", "姓名": "簡東明", "推薦政黨": "中國國民黨", "得票數": 25940, "得票率": "22.96%", "當選註記": "*", "是否現任": "是", "捐贈企業數": 6, "總收入": 8933287, "營利事業捐贈收入": 2387000}, {"地區": "臺中市第06選區", "姓名": "沈智慧", "推薦政黨": "中國國民黨", "得票數": 69611, "得票率": "40.53%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 16, "總收入": 13537229, "營利事業捐贈收入": 2363800}, {"地區": "彰化縣第04選區", "姓名": "張錦昆", "推薦政黨": "中國國民黨", "得票數": 71367, "得票率": "42.76%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 23, "總收入": 17290302, "營利事業捐贈收入": 2283000}, {"地區": "新竹市第01選區", "姓名": "鄭正鈐", "推薦政黨": "中國國民黨", "得票數": 79951, "得票率": "36.45%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 24, "總收入": 11902782, "營利事業捐贈收入": 2246000}, {"地區": "嘉義市第01選區", "姓名": "翁壽良", "推薦政黨": "無黨籍", "得票數": 12202, "得票率": "8.90%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 9, "總收入": 6906648, "營利事業捐贈收入": 2230000}, {"地區": "新北市第08選區", "姓名": "張慶忠", "推薦政黨": "中國國民黨", "得票數": 75738, "得票率": "40.42%", "當選註記": NaN, "是否現任": "是", "捐贈企業數": 13, "總收入": 3774045, "營利事業捐贈收入": 2191000}, {"地區": "臺北市第03選區", "姓名": "李晏榕", "推薦政黨": "綠黨社會民主黨聯盟", "得票數": 23706, "得票率": "12.34%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 12, "總收入": 4143560, "營利事業捐贈收入": 2142600}, {"地區": "山原原住民", "姓名": "孔文吉", "推薦政黨": "中國國民黨", "得票數": 20105, "得票率": "17.79%", "當選註記": "*", "是否現任": "是", "捐贈企業數": 6, "總收入": 8581591, "營利事業捐贈收入": 2140000}, {"地區": "金門縣第01選區", "姓名": "楊鎮浯", "推薦政黨": "中國國民黨", "得票數": 16350, "得票率": "45.08%", "當選註記": "*", "是否現任": "否", "捐贈企業數": 2, "總收入": 8572853, "營利事業捐贈收入": 2100000}, {"地區": "平原原住民", "姓名": "鄭天財", "推薦政黨": "中國國民黨", "得票數": 26979, "得票率": "28.51%", "當選註記": "*", "是否現任": "是", "捐贈企業數": 11, "總收入": 11168024, "營利事業捐贈收入": 2033000}, {"地區": "高雄市第05選區", "姓名": "蔡金晏", "推薦政黨": "中國國民黨", "得票數": 57472, "得票率": "38.59%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 18, "總收入": 12610974, "營利事業捐贈收入": 2020000}, {"地區": "新北市第10選區", "姓名": "盧嘉辰", "推薦政黨": "中國國民黨", "得票數": 67619, "得票率": "38.46%", "當選註記": NaN, "是否現任": "是", "捐贈企業數": 7, "總收入": 11213279, "營利事業捐贈收入": 1900000}, {"地區": "苗栗縣第02選區", "姓名": "吳宜臻", "推薦政黨": "民主進步黨", "得票數": 65465, "得票率": "44.60%", "當選註記": NaN, "是否現任": "是", "捐贈企業數": 22, "總收入": 9276301, "營利事業捐贈收入": 1889000}, {"地區": "苗栗縣第01選區", "姓名": "杜文卿", "推薦政黨": "民主進步黨", "得票數": 47837, "得票率": "35.86%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 8, "總收入": 3461146, "營利事業捐贈收入": 1790000}, {"地區": "臺東縣第01選區", "姓名": "陳建閣", "推薦政黨": "中國國民黨", "得票數": 23616, "得票率": "35.81%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 15, "總收入": 8932603, "營利事業捐贈收入": 1698800}, {"地區": "澎湖縣第01選區", "姓名": "楊曜", "推薦政黨": "民主進步黨", "得票數": 23107, "得票率": "55.40%", "當選註記": "*", "是否現任": "是", "捐贈企業數": 9, "總收入": 7150834, "營利事業捐贈收入": 1696000}, {"地區": "臺南市第04選區", "姓名": "陳淑慧", "推薦政黨": "中國國民黨", "得票數": 64652, "得票率": "32.46%", "當選註記": NaN, "是否現任": "是", "捐贈企業數": 8, "總收入": 16873862, "營利事業捐贈收入": 1680000}, {"地區": "新北市第02選區", "姓名": "陳明義", "推薦政黨": "中國國民黨", "得票數": 56057, "得票率": "31.25%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 15, "總收入": 14908123, "營利事業捐贈收入": 1678000}, {"地區": "山原原住民", "姓名": "瓦歷斯‧貝林", "推薦政黨": "民主進步黨", "得票數": 16658, "得票率": "14.74%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 4, "總收入": 5217339, "營利事業捐贈收入": 1555000}, {"地區": "桃園市第06選區", "姓名": "趙正宇", "推薦政黨": "無黨籍", "得票數": 76278, "得票率": "46.52%", "當選註記": "*", "是否現任": "否", "捐贈企業數": 9, "總收入": 3550319, "營利事業捐贈收入": 1500000}, {"地區": "基隆市第01選區", "姓名": "劉文雄", "推薦政黨": "親民黨", "得票數": 23485, "得票率": "12.36%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 7, "總收入": 8702245, "營利事業捐贈收入": 1500000}, {"地區": "山原原住民", "姓名": "高金素梅", "推薦政黨": "無黨團結聯盟", "得票數": 27690, "得票率": "24.51%", "當選註記": "*", "是否現任": "是", "捐贈企業數": 2, "總收入": 1807031, "營利事業捐贈收入": 1500000}, {"地區": "新北市第08選區", "姓名": "江永昌", "推薦政黨": "民主進步黨", "得票數": 100543, "得票率": "53.66%", "當選註記": "*", "是否現任": "否", "捐贈企業數": 22, "總收入": 10074838, "營利事業捐贈收入": 1491700}, {"地區": "臺北市第06選區", "姓名": "吳旭智", "推薦政黨": "民國黨", "得票數": 5962, "得票率": "3.71%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 3, "總收入": 3669675, "營利事業捐贈收入": 1400000}, {"地區": "南投縣第01選區", "姓名": "張國鑫", "推薦政黨": "民主進步黨", "得票數": 52521, "得票率": "45.22%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 12, "總收入": 3164420, "營利事業捐贈收入": 1375000}, {"地區": "花蓮縣第01選區", "姓名": "王廷升", "推薦政黨": "中國國民黨", "得票數": 51248, "得票率": "43.58%", "當選註記": NaN, "是否現任": "是", "捐贈企業數": 8, "總收入": 10242283, "營利事業捐贈收入": 1300000}, {"地區": "臺北市第06選區", "姓名": "范雲", "推薦政黨": "綠黨社會民主黨聯盟", "得票數": 56766, "得票率": "35.35%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 6, "總收入": 6557115, "營利事業捐贈收入": 1216000}, {"地區": "新北市第03選區", "姓名": "張碩文", "推薦政黨": "親民黨", "得票數": 13375, "得票率": "7.55%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 5, "總收入": 7358957, "營利事業捐贈收入": 1200000}, {"地區": "連江縣第01選區", "姓名": "陳雪生", "推薦政黨": "中國國民黨", "得票數": 2927, "得票率": "68.06%", "當選註記": "*", "是否現任": "是", "捐贈企業數": 2, "總收入": 6812273, "營利事業捐贈收入": 1150000}, {"地區": "彰化縣第03選區", "姓名": "陳朝容", "推薦政黨": "親民黨", "得票數": 19287, "得票率": "11.37%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 10, "總收入": 3648443, "營利事業捐贈收入": 1140000}, {"地區": "桃園市第05選區", "姓名": "呂玉玲", "推薦政黨": "中國國民黨", "得票數": 72965, "得票率": "43.86%", "當選註記": "*", "是否現任": "是", "捐贈企業數": 13, "總收入": 8574500, "營利事業捐贈收入": 1120000}, {"地區": "新竹市第01選區", "姓名": "邱顯智", "推薦政黨": "時代力量", "得票數": 36309, "得票率": "16.55%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 15, "總收入": 9475771, "營利事業捐贈收入": 1107921}, {"地區": "澎湖縣第01選區", "姓名": "陳雙全", "推薦政黨": "中國國民黨", "得票數": 16680, "得票率": "39.99%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 6, "總收入": 7661132, "營利事業捐贈收入": 1100000}, {"地區": "嘉義縣第01選區", "姓名": "林江釧", "推薦政黨": "中國國民黨", "得票數": 62176, "得票率": "45.43%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 3, "總收入": 7285881, "營利事業捐贈收入": 1100000}, {"地區": "新竹縣第01選區", "姓名": "邱靖雅", "推薦政黨": "民國黨", "得票數": 63512, "得票率": "24.96%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 8, "總收入": 8748070, "營利事業捐贈收入": 1098000}, {"地區": "嘉義市第01選區", "姓名": "吳育仁", "推薦政黨": "中國國民黨", "得票數": 48893, "得票率": "35.66%", "當選註記": NaN, "是否現任": "是", "捐贈企業數": 5, "總收入": 8908389, "營利事業捐贈收入": 955000}, {"地區": "平原原住民", "姓名": "馬躍‧比吼", "推薦政黨": "無黨籍", "得票數": 9009, "得票率": "9.52%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 7, "總收入": 3842162, "營利事業捐贈收入": 901000}, {"地區": "新北市第04選區", "姓名": "陳茂嘉", "推薦政黨": "中國國民黨", "得票數": 54487, "得票率": "29.40%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 4, "總收入": 8055285, "營利事業捐贈收入": 800000}, {"地區": "新北市第07選區", "姓名": "李婉鈺", "推薦政黨": "無黨籍", "得票數": 8038, "得票率": "5.22%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 12, "總收入": 1850008, "營利事業捐贈收入": 790000}, {"地區": "臺北市第03選區", "姓名": "潘建志", "推薦政黨": "無黨籍", "得票數": 73797, "得票率": "38.41%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 9, "總收入": 7808001, "營利事業捐贈收入": 768000}, {"地區": "雲林縣第02選區", "姓名": "吳威志", "推薦政黨": "中國國民黨", "得票數": 46494, "得票率": "26.16%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 7, "總收入": 6522911, "營利事業捐贈收入": 710000}, {"地區": "臺南市第03選區", "姓名": "謝龍介", "推薦政黨": "中國國民黨", "得票數": 53705, "得票率": "25.72%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 7, "總收入": 10826855, "營利事業捐贈收入": 610000}, {"地區": "臺中市第07選區", "姓名": "賴義鍠", "推薦政黨": "中國國民黨", "得票數": 66181, "得票率": "35.04%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 15, "總收入": 7300130, "營利事業捐贈收入": 589000}, {"地區": "臺中市第05選區", "姓名": "劉國隆", "推薦政黨": "台灣團結聯盟", "得票數": 84117, "得票率": "39.96%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 16, "總收入": 6186361, "營利事業捐贈收入": 480500}, {"地區": "臺中市第01選區", "姓名": "顏秋月", "推薦政黨": "中國國民黨", "得票數": 53293, "得票率": "37.99%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 5, "總收入": 8402544, "營利事業捐贈收入": 441360}, {"地區": "新竹縣第01選區", "姓名": "林為洲", "推薦政黨": "中國國民黨", "得票數": 93495, "得票率": "36.74%", "當選註記": "*", "是否現任": "否", "捐贈企業數": 4, "總收入": 5885624, "營利事業捐贈收入": 400000}, {"地區": "新北市第06選區", "姓名": "康仁俊", "推薦政黨": "親民黨", "得票數": 4085, "得票率": "2.78%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 4, "總收入": 7349100, "營利事業捐贈收入": 303100}, {"地區": "嘉義縣第02選區", "姓名": "林于玲", "推薦政黨": "中國國民黨", "得票數": 43279, "得票率": "31.86%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 3, "總收入": 5500000, "營利事業捐贈收入": 300000}, {"地區": "臺中市第04選區", "姓名": "吳淑慧", "推薦政黨": "民國黨", "得票數": 5616, "得票率": "2.94%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 2, "總收入": 2225226, "營利事業捐贈收入": 270000}, {"地區": "臺中市第05選區", "姓名": "簡孟軒", "推薦政黨": "信心希望聯盟", "得票數": 14502, "得票率": "6.88%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 9, "總收入": 2642785, "營利事業捐贈收入": 266000}, {"地區": "金門縣第01選區", "姓名": "陳滄江", "推薦政黨": "民主進步黨", "得票數": 8367, "得票率": "23.07%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 4, "總收入": 2567074, "營利事業捐贈收入": 256000}, {"地區": "宜蘭縣第01選區", "姓名": "邱錫奎", "推薦政黨": "無黨籍", "得票數": 19961, "得票率": "8.89%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 3, "總收入": 832067, "營利事業捐贈收入": 256000}, {"地區": "平原原住民", "姓名": "林琮翰", "推薦政黨": "中國國民黨", "得票數": 9118, "得票率": "9.63%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 3, "總收入": 3850040, "營利事業捐贈收入": 250000}, {"地區": "屏東縣第03選區", "姓名": "黃昭展", "推薦政黨": "無黨籍", "得票數": 41323, "得票率": "32.88%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 2, "總收入": 2110008, "營利事業捐贈收入": 250000}, {"地區": "臺中市第04選區", "姓名": "葉春幸", "推薦政黨": "信心希望聯盟", "得票數": 9782, "得票率": "5.12%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 11, "總收入": 5167282, "營利事業捐贈收入": 246500}, {"地區": "臺北市第07選區", "姓名": "呂欣潔", "推薦政黨": "綠黨社會民主黨聯盟", "得票數": 17747, "得票率": "10.73%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 10, "總收入": 3242188, "營利事業捐贈收入": 244500}, {"地區": "苗栗縣第01選區", "姓名": "康世儒", "推薦政黨": "民國黨", "得票數": 23134, "得票率": "17.34%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 3, "總收入": 1658013, "營利事業捐贈收入": 220000}, {"地區": "臺南市第05選區", "姓名": "林易煌", "推薦政黨": "中國國民黨", "得票數": 51742, "得票率": "24.27%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 4, "總收入": 6750978, "營利事業捐贈收入": 201000}, {"地區": "金門縣第01選區", "姓名": "吳成典", "推薦政黨": "新黨", "得票數": 9405, "得票率": "25.93%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 2, "總收入": 6774600, "營利事業捐贈收入": 200000}, {"地區": "桃園市第03選區", "姓名": "賴立竹", "推薦政黨": "無黨籍", "得票數": 9501, "得票率": "5.48%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 1, "總收入": 825000, "營利事業捐贈收入": 200000}, {"地區": "新北市第11選區", "姓名": "曾柏瑜", "推薦政黨": "綠黨社會民主黨聯盟", "得票數": 22487, "得票率": "12.20%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 1, "總收入": 1921940, "營利事業捐贈收入": 200000}, {"地區": "臺北市第04選區", "姓名": "陳尚志", "推薦政黨": "綠黨社會民主黨聯盟", "得票數": 10278, "得票率": "4.78%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 3, "總收入": 2869276, "營利事業捐贈收入": 170000}, {"地區": "臺北市第06選區", "姓名": "龎維良", "推薦政黨": "無黨籍", "得票數": 2963, "得票率": "1.84%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 3, "總收入": 699565, "營利事業捐贈收入": 170000}, {"地區": "基隆市第01選區", "姓名": "楊石城", "推薦政黨": "民國黨", "得票數": 19045, "得票率": "10.03%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 2, "總收入": 2617115, "營利事業捐贈收入": 152000}, {"地區": "臺北市第08選區", "姓名": "苗博雅", "推薦政黨": "綠黨社會民主黨聯盟", "得票數": 21084, "得票率": "12.48%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 2, "總收入": 2528631, "營利事業捐贈收入": 120000}, {"地區": "桃園市第01選區", "姓名": "王寶萱", "推薦政黨": "綠黨社會民主黨聯盟", "得票數": 15802, "得票率": "8.68%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 2, "總收入": 2543315, "營利事業捐贈收入": 112000}, {"地區": "山原原住民", "姓名": "林信義", "推薦政黨": "信心希望聯盟", "得票數": 6185, "得票率": "5.47%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 3, "總收入": 2461000, "營利事業捐贈收入": 110000}, {"地區": "臺中市第02選區", "姓名": "紀國棟", "推薦政黨": "無黨籍", "得票數": 17938, "得票率": "8.95%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 1, "總收入": 1457373, "營利事業捐贈收入": 100000}, {"地區": "新北市第01選區", "姓名": "呂孫綾", "推薦政黨": "民主進步黨", "得票數": 110243, "得票率": "53.27%", "當選註記": "*", "是否現任": "否", "捐贈企業數": 1, "總收入": 782640, "營利事業捐贈收入": 100000}, {"地區": "新竹市第01選區", "姓名": "吳淑敏", "推薦政黨": "無黨籍", "得票數": 4151, "得票率": "1.89%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 1, "總收入": 294501, "營利事業捐贈收入": 100000}, {"地區": "宜蘭縣第01選區", "姓名": "吳紹文", "推薦政黨": "綠黨社會民主黨聯盟", "得票數": 10730, "得票率": "4.78%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 1, "總收入": 1064023, "營利事業捐贈收入": 100000}, {"地區": "臺北市第01選區", "姓名": "王靜亞", "推薦政黨": "民國黨", "得票數": 9480, "得票率": "5.02%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 3, "總收入": 2635907, "營利事業捐贈收入": 98000}, {"地區": "新北市第06選區", "姓名": "游信義", "推薦政黨": "信心希望聯盟", "得票數": 2626, "得票率": "1.78%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 4, "總收入": 2137336, "營利事業捐贈收入": 74300}, {"地區": "臺北市第06選區", "姓名": "鄭村棋", "推薦政黨": "人民民主陣線", "得票數": 4927, "得票率": "3.06%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 2, "總收入": 498300, "營利事業捐贈收入": 62000}, {"地區": "桃園市第03選區", "姓名": "陳宏瑞", "推薦政黨": "民國黨", "得票數": 8727, "得票率": "5.03%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 2, "總收入": 1717041, "營利事業捐贈收入": 61000}, {"地區": "新竹縣第01選區", "姓名": "卓恩宗", "推薦政黨": "信心希望聯盟", "得票數": 5442, "得票率": "2.13%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 2, "總收入": 1338293, "營利事業捐贈收入": 52000}, {"地區": "高雄市第08選區", "姓名": "劉義雄", "推薦政黨": "軍公教聯盟黨", "得票數": 2136, "得票率": "1.14%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 1, "總收入": 50000, "營利事業捐贈收入": 50000}, {"地區": "高雄市第05選區", "姓名": "王新昌", "推薦政黨": "軍公教聯盟黨", "得票數": 1778, "得票率": "1.19%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 3, "總收入": 730658, "營利事業捐贈收入": 45000}, {"地區": "臺北市第04選區", "姓名": "蕭亞譚", "推薦政黨": "台灣團結聯盟", "得票數": 13648, "得票率": "6.35%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 3, "總收入": 1742205, "營利事業捐贈收入": 44000}, {"地區": "臺北市第05選區", "姓名": "尤瑞敏", "推薦政黨": "樹黨", "得票數": 4506, "得票率": "2.69%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 2, "總收入": 280140, "營利事業捐贈收入": 24000}, {"地區": "屏東縣第01選區", "姓名": "廖婉汝", "推薦政黨": "中國國民黨", "得票數": 43678, "得票率": "30.00%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 1, "總收入": 6162689, "營利事業捐贈收入": 24000}, {"地區": "高雄市第09選區", "姓名": "林宗彥", "推薦政黨": "民國黨", "得票數": 6667, "得票率": "4.00%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 1, "總收入": 578213, "營利事業捐贈收入": 20000}, {"地區": "高雄市第09選區", "姓名": "蔡媽福", "推薦政黨": "中華統一促進黨", "得票數": 1641, "得票率": "0.98%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 1, "總收入": 110000, "營利事業捐贈收入": 20000}, {"地區": "山原原住民", "姓名": "伊藍‧明基努安", "推薦政黨": "信心希望聯盟", "得票數": 7750, "得票率": "6.86%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 1, "總收入": 24100, "營利事業捐贈收入": 20000}, {"地區": "臺北市第04選區", "姓名": "何偉", "推薦政黨": "無黨籍", "得票數": 2497, "得票率": "1.16%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 1, "總收入": 806091, "營利事業捐贈收入": 20000}, {"地區": "新北市第03選區", "姓名": "林其瑩", "推薦政黨": "社會福利黨", "得票數": 1114, "得票率": "0.62%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 1, "總收入": 149600, "營利事業捐贈收入": 20000}, {"地區": "新北市第06選區", "姓名": "李貴寶", "推薦政黨": "民國黨", "得票數": 706, "得票率": "0.48%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 1, "總收入": 44102, "營利事業捐贈收入": 20000}, {"地區": "新竹市第01選區", "姓名": "黃源甫", "推薦政黨": "無黨籍", "得票數": 1185, "得票率": "0.54%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 1, "總收入": 316889, "營利事業捐贈收入": 16888}, {"地區": "臺南市第03選區", "姓名": "翁琬甯", "推薦政黨": "中華統一促進黨", "得票數": 796, "得票率": "0.38%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 1, "總收入": 36000, "營利事業捐贈收入": 16000}, {"地區": "新北市第06選區", "姓名": "黃鈞民", "推薦政黨": "軍公教聯盟黨", "得票數": 473, "得票率": "0.32%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 1, "總收入": 236005, "營利事業捐贈收入": 15000}, {"地區": "臺南市第04選區", "姓名": "楊智達", "推薦政黨": "綠黨社會民主黨聯盟", "得票數": 9075, "得票率": "4.55%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 1, "總收入": 824125, "營利事業捐贈收入": 10000}, {"地區": "彰化縣第02選區", "姓名": "溫國銘", "推薦政黨": "勞工黨", "得票數": 5773, "得票率": "3.55%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 1, "總收入": 181000, "營利事業捐贈收入": 6000}, {"地區": "桃園市第06選區", "姓名": "呂東杰", "推薦政黨": "綠黨社會民主黨聯盟", "得票數": 7374, "得票率": "4.49%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 1, "總收入": 465370, "營利事業捐贈收入": 5000}, {"地區": "新北市第08選區", "姓名": "吳金魁", "推薦政黨": "軍公教聯盟黨", "得票數": 1596, "得票率": "0.85%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 1, "總收入": 215018, "營利事業捐贈收入": 5000}, {"地區": "宜蘭縣第01選區", "姓名": "孫博萮", "推薦政黨": "無黨籍", "得票數": 7189, "得票率": "3.20%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 1, "總收入": 285522, "營利事業捐贈收入": 1000}, {"地區": "高雄市第03選區", "姓名": "梁蓓禎", "推薦政黨": "信心希望聯盟", "得票數": 11546, "得票率": "6.04%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 0, "總收入": 890933, "營利事業捐贈收入": 0}, {"地區": "高雄市第04選區", "姓名": "郭倫豪", "推薦政黨": "中國國民黨", "得票數": 37711, "得票率": "23.21%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 0, "總收入": 5735287, "營利事業捐贈收入": 0}, {"地區": "高雄市第08選區", "姓名": "張育華", "推薦政黨": "人民民主陣線", "得票數": 2476, "得票率": "1.32%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 0, "總收入": 253675, "營利事業捐贈收入": 0}, {"地區": "嘉義縣第01選區", "姓名": "邱崑龍", "推薦政黨": "無黨籍", "得票數": 2186, "得票率": "1.59%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 0, "總收入": 2000, "營利事業捐贈收入": 0}, {"地區": "嘉義縣第02選區", "姓名": "賴競民", "推薦政黨": "大愛憲改聯盟", "得票數": 4016, "得票率": "2.95%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 0, "總收入": 10000, "營利事業捐贈收入": 0}, {"地區": "金門縣第01選區", "姓名": "高丹樺", "推薦政黨": "軍公教聯盟黨", "得票數": 666, "得票率": "1.83%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 0, "總收入": 626044, "營利事業捐贈收入": 0}, {"地區": "金門縣第01選區", "姓名": "洪志恒", "推薦政黨": "無黨籍", "得票數": 647, "得票率": "1.78%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 0, "總收入": 242088, "營利事業捐贈收入": 0}, {"地區": "連江縣第01選區", "姓名": "林金官", "推薦政黨": "無黨籍", "得票數": 760, "得票率": "17.67%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 0, "總收入": 29600, "營利事業捐贈收入": 0}, {"地區": "連江縣第01選區", "姓名": "蘇柏豪", "推薦政黨": "樹黨", "得票數": 506, "得票率": "11.76%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 0, "總收入": 62500, "營利事業捐贈收入": 0}, {"地區": "連江縣第01選區", "姓名": "張春寶", "推薦政黨": "中華統一促進黨", "得票數": 107, "得票率": "2.48%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 0, "總收入": 950, "營利事業捐贈收入": 0}, {"地區": "苗栗縣第02選區", "姓名": "戴文祥", "推薦政黨": "無黨籍", "得票數": 3076, "得票率": "2.09%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 0, "總收入": 1157151, "營利事業捐贈收入": 0}, {"地區": "澎湖縣第01選區", "姓名": "冼義哲", "推薦政黨": "樹黨", "得票數": 1523, "得票率": "3.65%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 0, "總收入": 230520, "營利事業捐贈收入": 0}, {"地區": "平原原住民", "姓名": "林昊宜", "推薦政黨": "親民黨", "得票數": 6191, "得票率": "6.54%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 0, "總收入": 6314533, "營利事業捐贈收入": 0}, {"地區": "平原原住民", "姓名": "達佶祐‧卡造", "推薦政黨": "軍公教聯盟黨", "得票數": 1160, "得票率": "1.22%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 0, "總收入": 250000, "營利事業捐贈收入": 0}, {"地區": "平原原住民", "姓名": "嘎礌‧武拜‧哈雅萬", "推薦政黨": "無黨籍", "得票數": 804, "得票率": "0.84%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 0, "總收入": 6600, "營利事業捐贈收入": 0}, {"地區": "屏東縣第03選區", "姓名": "許謹如", "推薦政黨": "中國國民黨", "得票數": 16097, "得票率": "12.80%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 0, "總收入": 4256003, "營利事業捐贈收入": 0}, {"地區": "山原原住民", "姓名": "尤命‧蘇樣", "推薦政黨": "中國生產黨", "得票數": 568, "得票率": "0.50%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 0, "總收入": 2000, "營利事業捐贈收入": 0}, {"地區": "山原原住民", "姓名": "林世偉", "推薦政黨": "無黨籍", "得票數": 2247, "得票率": "1.98%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 0, "總收入": 12000, "營利事業捐贈收入": 0}, {"地區": "臺北市第02選區", "姓名": "吳俊德", "推薦政黨": "信心希望聯盟", "得票數": 3550, "得票率": "1.96%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 0, "總收入": 573038, "營利事業捐贈收入": 0}, {"地區": "臺北市第03選區", "姓名": "黃麗香", "推薦政黨": "無黨籍", "得票數": 607, "得票率": "0.31%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 0, "總收入": 26000, "營利事業捐贈收入": 0}, {"地區": "臺北市第04選區", "姓名": "林少馳", "推薦政黨": "時代力量", "得票數": 12246, "得票率": "5.70%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 0, "總收入": 1022455, "營利事業捐贈收入": 0}, {"地區": "臺北市第05選區", "姓名": "龔偉綸", "推薦政黨": "無黨籍", "得票數": 1710, "得票率": "1.02%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 0, "總收入": 104500, "營利事業捐贈收入": 0}, {"地區": "臺北市第06選區", "姓名": "曾獻瑩", "推薦政黨": "信心希望聯盟", "得票數": 4826, "得票率": "3.00%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 0, "總收入": 2555705, "營利事業捐贈收入": 0}, {"地區": "臺北市第06選區", "姓名": "周芳如", "推薦政黨": "無黨籍", "得票數": 4120, "得票率": "2.56%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 0, "總收入": 1656066, "營利事業捐贈收入": 0}, {"地區": "臺北市第06選區", "姓名": "陳家宏", "推薦政黨": "樹黨", "得票數": 1986, "得票率": "1.23%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 0, "總收入": 143362, "營利事業捐贈收入": 0}, {"地區": "臺北市第06選區", "姓名": "蔣慰慈", "推薦政黨": "無黨籍", "得票數": 271, "得票率": "0.16%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 0, "總收入": 1200, "營利事業捐贈收入": 0}, {"地區": "臺北市第07選區", "姓名": "林文傑", "推薦政黨": "無黨籍", "得票數": 1063, "得票率": "0.64%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 0, "總收入": 500, "營利事業捐贈收入": 0}, {"地區": "臺北市第07選區", "姓名": "詹益正", "推薦政黨": "無黨籍", "得票數": 625, "得票率": "0.37%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 0, "總收入": 1000, "營利事業捐贈收入": 0}, {"地區": "臺南市第01選區", "姓名": "黃瑞坤", "推薦政黨": "中國國民黨", "得票數": 36684, "得票率": "22.17%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 0, "總收入": 5747446, "營利事業捐贈收入": 0}, {"地區": "臺南市第01選區", "姓名": "林德旺", "推薦政黨": "無黨籍", "得票數": 8841, "得票率": "5.34%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 0, "總收入": 366000, "營利事業捐贈收入": 0}, {"地區": "臺南市第02選區", "姓名": "黃耀盛", "推薦政黨": "中國國民黨", "得票數": 35742, "得票率": "18.66%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 0, "總收入": 5766442, "營利事業捐贈收入": 0}, {"地區": "臺南市第02選區", "姓名": "黃憲清", "推薦政黨": "自由台灣黨", "得票數": 4604, "得票率": "2.40%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 0, "總收入": 207200, "營利事業捐贈收入": 0}, {"地區": "臺南市第03選區", "姓名": "鄧秀寶", "推薦政黨": "民國黨", "得票數": 5247, "得票率": "2.51%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 0, "總收入": 500, "營利事業捐贈收入": 0}, {"地區": "臺中市第01選區", "姓名": "黃金推", "推薦政黨": "無黨籍", "得票數": 1205, "得票率": "0.85%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 0, "總收入": 0, "營利事業捐贈收入": 0}, {"地區": "臺中市第02選區", "姓名": "鍾文龍", "推薦政黨": "無黨籍", "得票數": 1370, "得票率": "0.68%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 0, "總收入": 5000, "營利事業捐贈收入": 0}, {"地區": "臺中市第03選區", "姓名": "黃信吉", "推薦政黨": "軍公教聯盟黨", "得票數": 1691, "得票率": "0.97%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 0, "總收入": 622021, "營利事業捐贈收入": 0}, {"地區": "臺中市第04選區", "姓名": "顏惠莉", "推薦政黨": "無黨籍", "得票數": 4154, "得票率": "2.17%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 0, "總收入": 3000, "營利事業捐贈收入": 0}, {"地區": "臺中市第07選區", "姓名": "石大哉", "推薦政黨": "軍公教聯盟黨", "得票數": 3544, "得票率": "1.87%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 0, "總收入": 200000, "營利事業捐贈收入": 0}, {"地區": "桃園市第02選區", "姓名": "陳佩俞", "推薦政黨": "樹黨", "得票數": 3270, "得票率": "1.82%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 0, "總收入": 28304, "營利事業捐贈收入": 0}, {"地區": "桃園市第05選區", "姓名": "張誠", "推薦政黨": "民國黨", "得票數": 17956, "得票率": "10.79%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 0, "總收入": 487810, "營利事業捐贈收入": 0}, {"地區": "新北市第01選區", "姓名": "洪志成", "推薦政黨": "健保免費連線", "得票數": 1385, "得票率": "0.66%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 0, "總收入": 3250, "營利事業捐贈收入": 0}, {"地區": "新北市第01選區", "姓名": "蘇通達", "推薦政黨": "樹黨", "得票數": 5114, "得票率": "2.47%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 0, "總收入": 99599, "營利事業捐贈收入": 0}, {"地區": "新北市第03選區", "姓名": "姚胤宏", "推薦政黨": "樹黨", "得票數": 1314, "得票率": "0.74%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 0, "總收入": 66000, "營利事業捐贈收入": 0}, {"地區": "新北市第03選區", "姓名": "蘇卿彥", "推薦政黨": "無黨籍", "得票數": 429, "得票率": "0.24%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 0, "總收入": 6600, "營利事業捐贈收入": 0}, {"地區": "新北市第03選區", "姓名": "蕭忠漢", "推薦政黨": "健保免費連線", "得票數": 546, "得票率": "0.30%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 0, "總收入": 101000, "營利事業捐贈收入": 0}, {"地區": "新北市第04選區", "姓名": "賈伯楷", "推薦政黨": "綠黨社會民主黨聯盟", "得票數": 8609, "得票率": "4.64%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 0, "總收入": 1057521, "營利事業捐贈收入": 0}, {"地區": "新北市第06選區", "姓名": "李建明", "推薦政黨": "樹黨", "得票數": 1816, "得票率": "1.23%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 0, "總收入": 55000, "營利事業捐贈收入": 0}, {"地區": "新北市第09選區", "姓名": "張菁芳", "推薦政黨": "民國黨", "得票數": 23767, "得票率": "15.05%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 0, "總收入": 2353321, "營利事業捐贈收入": 0}, {"地區": "新北市第09選區", "姓名": "李幸長", "推薦政黨": "無黨籍", "得票數": 46660, "得票率": "29.56%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 0, "總收入": 1027996, "營利事業捐贈收入": 0}, {"地區": "新北市第09選區", "姓名": "董建一", "推薦政黨": "中華民國機車黨", "得票數": 3040, "得票率": "1.92%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 0, "總收入": 260110, "營利事業捐贈收入": 0}, {"地區": "新北市第12選區", "姓名": "陳永順", "推薦政黨": "信心希望聯盟", "得票數": 4892, "得票率": "3.13%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 0, "總收入": 1003334, "營利事業捐贈收入": 0}, {"地區": "新竹市第01選區", "姓名": "魏揚", "推薦政黨": "軍公教聯盟黨", "得票數": 723, "得票率": "0.32%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 0, "總收入": 201000, "營利事業捐贈收入": 0}, {"地區": "新竹市第01選區", "姓名": "歐崇敬", "推薦政黨": "親民黨", "得票數": 4189, "得票率": "1.91%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 0, "總收入": 6503607, "營利事業捐贈收入": 0}, {"地區": "新竹縣第01選區", "姓名": "李宗華", "推薦政黨": "軍公教聯盟黨", "得票數": 1520, "得票率": "0.59%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 0, "總收入": 250000, "營利事業捐贈收入": 0}, {"地區": "宜蘭縣第01選區", "姓名": "郭儒釗", "推薦政黨": "軍公教聯盟黨", "得票數": 1062, "得票率": "0.47%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 0, "總收入": 200000, "營利事業捐贈收入": 0}, {"地區": "宜蘭縣第01選區", "姓名": "林獻山", "推薦政黨": "泛盟黨", "得票數": 634, "得票率": "0.28%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 0, "總收入": 0, "營利事業捐贈收入": 0}, {"地區": "彰化縣第02選區", "姓名": "張耀元", "推薦政黨": "民國黨", "得票數": 4554, "得票率": "2.80%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 0, "總收入": 1171969, "營利事業捐贈收入": 0}, {"地區": "彰化縣第02選區", "姓名": "黄玉芬", "推薦政黨": "無黨籍", "得票數": 12380, "得票率": "7.61%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 0, "總收入": 10700, "營利事業捐贈收入": 0}, {"地區": "彰化縣第02選區", "姓名": "劉泳君", "推薦政黨": "無黨籍", "得票數": 657, "得票率": "0.40%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 0, "總收入": 12800, "營利事業捐贈收入": 0}, {"地區": "彰化縣第03選區", "姓名": "洪遊江", "推薦政黨": "自由台灣黨", "得票數": 2012, "得票率": "1.18%", "當選註記": NaN, "是否現任": "否", "捐贈企業數": 0, "總收入": 0, "營利事業捐贈收入": 0}];
 
-        let filteredData = [...mockData];
-        let displayLimit = 5;
+        let filteredData = [...rawData];
+        let currentPage = 1;
+        const pageSize = 15;
 
-        function init() {
-            lucide.createIcons();
-            renderStats();
-            renderPartyFilters();
-            applyFilters();
+        // 政黨標籤樣式映射
+        function getPartyClass(party) {
+            if (party.includes("民主進步黨")) return "dpp";
+            if (party.includes("中國國民黨")) return "kmt";
+            if (party.includes("無黨籍")) return "ind";
+            return "other-party";
         }
 
-        function switchView(viewId) {
-            document.querySelectorAll('.view-content').forEach(v => v.classList.remove('active'));
-            document.getElementById(`view-${viewId}`).classList.add('active');
-            window.scrollTo(0, 0);
+        // 格式化數字為千分位
+        function formatNumber(num) {
+            return new Intl.NumberFormat().format(num);
         }
 
-        function handleHeroSearch() {
-            const query = document.getElementById('landing-search').value;
-            document.getElementById('list-search').value = query;
-            switchView('results');
-            applyFilters();
-        }
-
-        function quickSearch(tag) {
-            if (tag === '企業捐贈前十名') {
-                document.getElementById('sort-select').value = 'corp-desc';
-                document.getElementById('list-search').value = '';
-            } else {
-                document.getElementById('list-search').value = tag;
+        // 渲染表格數據
+        function renderTable(append = false) {
+            const tbody = document.getElementById("dataTableBody");
+            if (!append) {
+                tbody.innerHTML = "";
             }
-            switchView('results');
-            applyFilters();
-        }
 
-        function renderStats() {
-            document.getElementById('stat-total').innerText = mockData.length + " 人";
-            const avgCorp = (mockData.reduce((acc, curr) => acc + parseFloat(curr.corp_rate), 0) / mockData.length).toFixed(2);
-            document.getElementById('stat-corp-avg').innerText = avgCorp + "%";
-            const maxVotes = Math.max(...mockData.map(d => d.votes));
-            document.getElementById('stat-max-votes').innerText = maxVotes.toLocaleString();
-            const parties = new Set(mockData.map(d => d.party)).size;
-            document.getElementById('stat-parties').innerText = parties + " 個政黨";
-        }
-
-        function renderPartyFilters() {
-            const parties = Array.from(new Set(mockData.map(d => d.party)));
-            const container = document.getElementById('party-filters');
-            container.innerHTML = parties.map(party => `
-                <label class="flex items-center space-x-2 text-sm text-slate-600">
-                    <input type="checkbox" value="${party}" onchange="applyFilters()" class="rounded text-blue-700">
-                    <span>${party}</span>
-                </label>
-            `).join('');
-        }
-
-        function applyFilters() {
-            const searchTerm = document.getElementById('list-search').value.toLowerCase();
-            const sortVal = document.getElementById('sort-select').value;
+            const startIndex = (currentPage - 1) * pageSize;
+            const endIndex = Math.min(startIndex + pageSize, filteredData.length);
             
-            // 獲取選中的政黨
-            const checkedParties = Array.from(document.querySelectorAll('#party-filters input:checked')).map(i => i.value);
+            const pageRecords = filteredData.slice(startIndex, endIndex);
 
-            filteredData = mockData.filter(d => {
-                const matchSearch = d.name.includes(searchTerm) || d.party.includes(searchTerm);
-                const matchParty = checkedParties.length === 0 || checkedParties.includes(d.party);
-                return matchSearch && matchParty;
-            });
-
-            // 排序
-            if (sortVal === 'votes-desc') filteredData.sort((a, b) => b.votes - a.votes);
-            if (sortVal === 'income-desc') filteredData.sort((a, b) => b.income - a.income);
-            if (sortVal === 'corp-desc') filteredData.sort((a, b) => parseFloat(b.corp_rate) - parseFloat(a.corp_rate));
-
-            displayLimit = 5;
-            renderResults();
-        }
-
-        function loadMore() {
-            displayLimit += 5;
-            renderResults();
-        }
-
-        function renderResults() {
-            const grid = document.getElementById('results-grid');
-            const counter = document.getElementById('results-count');
-            counter.innerText = filteredData.length;
-
-            const toDisplay = filteredData.slice(0, displayLimit);
-            
-            if (toDisplay.length === 0) {
-                grid.innerHTML = '<div class="text-center py-20 text-slate-500">找不到相符的數據</div>';
+            if (pageRecords.length === 0 && !append) {
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-light); padding: 3rem;">沒有找到符合條件的參選人數據</td></tr>`;
+                document.getElementById("loadMoreBtn").style.display = "none";
+                document.getElementById("recordCounter").innerText = "共 0 筆符合條件的紀錄";
                 return;
             }
 
-            grid.innerHTML = toDisplay.map(d => `
-                <div class="bg-white rounded-xl p-5 border border-slate-200 card-shadow flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div class="flex items-center space-x-4">
-                        <div class="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center text-slate-400">
-                            <i data-lucide="user"></i>
-                        </div>
-                        <div>
-                            <div class="flex items-center gap-2">
-                                <h3 class="text-lg font-bold text-slate-800">${d.name}</h3>
-                                <span class="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full font-medium">${d.party}</span>
-                            </div>
-                            <p class="text-sm text-slate-500">${d.district} • 得票率 ${d.rate}</p>
-                        </div>
-                    </div>
-                    
-                    <div class="grid grid-cols-2 md:flex md:space-x-8 text-sm">
-                        <div>
-                            <p class="text-slate-400 text-xs uppercase font-semibold">總收入</p>
-                            <p class="font-bold text-slate-700">$${(d.income / 10000).toFixed(0)} 萬</p>
-                        </div>
-                        <div>
-                            <p class="text-slate-400 text-xs uppercase font-semibold">企業捐贈比</p>
-                            <p class="font-bold ${parseFloat(d.corp_rate) > 50 ? 'text-amber-600' : 'text-slate-700'}">${d.corp_rate}</p>
-                        </div>
-                        <div class="hidden md:block">
-                            <p class="text-slate-400 text-xs uppercase font-semibold">得票數</p>
-                            <p class="font-bold text-slate-700">${d.votes.toLocaleString()}</p>
-                        </div>
-                    </div>
+            pageRecords.forEach(r => {
+                const tr = document.createElement("tr");
+                
+                const electBadge = r["當選註記"] === "*" ? `<span class="elect-badge">當選</span>` : "";
+                const isIncumbent = r["是否現任"] === "是" ? `<small style="color:var(--text-light);display:block;font-size:0.75rem;">現任</small>` : "";
 
-                    <button class="bg-slate-50 hover:bg-slate-100 text-slate-600 px-4 py-2 rounded-lg text-sm font-medium transition border border-slate-200">
-                        詳情
-                    </button>
-                </div>
-            `).join('');
+                tr.innerHTML = `
+                    <td><strong>${r["姓名"]}</strong>${isIncumbent}</td>
+                    <td><span class="party-tag ${getPartyClass(r["推薦政黨"])}">${r["推薦政黨"]}</span></td>
+                    <td><span style="font-size:0.85rem; color:var(--text-main);">${r["地區"]}</span></td>
+                    <td><strong>${formatNumber(r["總收入"])}</strong></td>
+                    <td style="color:var(--text-light);">${formatNumber(r["營利事業捐贈收入"])}</td>
+                    <td>${r["得票率"]}</td>
+                    <td>${electBadge}</td>
+                `;
+                tbody.appendChild(tr);
+            });
 
-            lucide.createIcons();
-
-            // 隱藏加載更多按鈕
-            const pagination = document.getElementById('pagination');
-            if (displayLimit >= filteredData.length) {
-                pagination.style.display = 'none';
+            // 更新計數器與按鈕狀態
+            document.getElementById("recordCounter").innerText = `正在顯示 1 - ${endIndex} 筆 / 共 ${filteredData.length} 筆符合條件的紀錄`;
+            
+            const loadMoreBtn = document.getElementById("loadMoreBtn");
+            if (endIndex >= filteredData.length) {
+                loadMoreBtn.style.display = "none";
             } else {
-                pagination.style.display = 'flex';
+                loadMoreBtn.style.display = "inline-block";
+                loadMoreBtn.removeAttribute("disabled");
             }
         }
 
-        window.onload = init;
+        // 分頁加載
+        function loadMoreRecords() {
+            currentPage++;
+            renderTable(true);
+        }
+
+        // 搜尋與排序核心邏輯
+        function handleSortAndFilter() {
+            const searchInput = document.getElementById("searchInput").value.trim().toLowerCase();
+            const sortVal = document.getElementById("sortSelect").value;
+
+            // 1. 執行關鍵字篩選 (姓名、政黨、地區)
+            filteredData = rawData.filter(r => {
+                return r["姓名"].toLowerCase().includes(searchInput) || 
+                       r["推薦政黨"].toLowerCase().includes(searchInput) || 
+                       r["地區"].toLowerCase().includes(searchInput);
+            });
+
+            // 2. 執行排序
+            if (sortVal === "incomeDesc") {
+                filteredData.sort((a, b) => b["總收入"] - a["總收入"]);
+            } else if (sortVal === "incomeAsc") {
+                filteredData.sort((a, b) => a["總收入"] - b["總收入"]);
+            } else if (sortVal === "voteDesc") {
+                filteredData.sort((a, b) => {
+                    const voteA = parseFloat(a["得票率"].replace("%", "")) || 0;
+                    const voteB = parseFloat(b["得票率"].replace("%", "")) || 0;
+                    return voteB - voteA;
+                });
+            } else if (sortVal === "corpDesc") {
+                filteredData.sort((a, b) => b["營利事業捐贈收入"] - a["營利事業捐贈收入"]);
+            } else {
+                // 預設排序：按原始地區/地區排序
+                filteredData.sort((a, b) => a["地區"].localeCompare(b["地區"], 'zh-Hant'));
+            }
+
+            // 3. 更新動態摘要 (Quick Summary)
+            document.getElementById("sumTotalCandidates").innerText = filteredData.length;
+            const matchElected = filteredData.filter(r => r["當選註記"] === "*").length;
+            document.getElementById("sumElectedCount").innerText = matchElected;
+
+            // 重設頁碼並渲染
+            currentPage = 1;
+            renderTable(false);
+        }
+
+        // 觸發搜尋
+        function handleSearch() {
+            handleSortAndFilter();
+            // 自動平滑捲動到結果列表區
+            document.getElementById("resultsSection").scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // 範例快速查詢
+        function quickSearch(keyword) {
+            document.getElementById("searchInput").value = keyword;
+            handleSearch();
+        }
+
+        // 監聽搜尋框 Enter 鍵
+        document.getElementById("searchInput").addEventListener("keypress", function(e) {
+            if (e.key === 'Enter') {
+                handleSearch();
+            }
+        });
+
+        // 初始化渲染
+        window.onload = function() {
+            handleSortAndFilter();
+        };
     </script>
 </body>
 </html>
-
-```
-
